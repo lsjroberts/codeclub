@@ -1,13 +1,14 @@
 from turtle import *
 
-size = 1
+size = 6
 
 screensize(900,600)
+bgcolor('black')
 
 speed(11)
 
 penup()
-setx(-900)
+setx(-400)
 pendown()
 
 def fractal(depth):
@@ -16,13 +17,21 @@ def fractal(depth):
     else:
         depth = depth - 1
         fractal(depth)
-        left(60)
+        left(80)
         fractal(depth)
-        right(120)
+        right(160)
         fractal(depth)
-        left(60)
+        left(80)
         fractal(depth)
 
-fractal(8)
+pencolor('orange')
+pensize(2)
+# fillcolor('orange')
+# begin_fill()
+for i in range(3):
+    fractal(6)
+    right(120)
+# end_fill()
+
 
 exitonclick()
