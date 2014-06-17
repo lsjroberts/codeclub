@@ -51,24 +51,26 @@ def click(event):
         shape = "O"
 
 def winner():
+    # Check each horizontal row for all the same player
     for across in range(3):
         row = across*3
         line = grid[row] + grid[row+1] + grid[row+2]
         if line == "XXX" or line == "OOO":
             return True
 
+    # Check each vertical column for all the same player
     for down in range(3):
         line = grid[down] + grid[down+3] + grid[down+6]
         if line == "XXX" or line == "OOO":
             return True
 
+    # Check top-left to bottom-right diagonal
     line = grid[0]+grid[4]+grid[8]
-
     if line == "XXX" or line == "OOO":
             return True
 
+    # Check bottom-left to top-right diagonal
     line = grid[2]+grid[4]+grid[6]
-
     if line == "XXX" or line == "OOO":
             return True
 
