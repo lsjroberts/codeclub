@@ -9,9 +9,14 @@ from variables import *
 fpsClock = pygame.time.Clock()
 
 #variables for the map size
-TILESIZE  = 20
-MAPWIDTH  = 30
-MAPHEIGHT = 20
+TILESIZE    = 20
+MAPWIDTH    = 60
+MAPHEIGHT   = 40
+TOTALWIDTH  = 120
+TOTALHEIGHT = 80
+OFFSETLEFT  = 30
+OFFSETTOP   = 20
+MAPSPACING  = 10
 
 #maps each resource to the EVENT key used to place/craft it
 controls = {event:event+49 for event in range(len(resources))}
@@ -20,10 +25,19 @@ controls = {event:event+49 for event in range(len(resources))}
 invKeys = {key:str(1+key) for key in range(len(resources))}
 
 #the position of the player [x,y]
-playerPos = [0,0]
+playerPos = [OFFSETLEFT,OFFSETTOP]
 
 #use list comprehension to create our tilemap
-tilemap = [ [DIRT for w in range(MAPWIDTH)] for h in range(MAPHEIGHT) ] 
+tilemap = [ [DIRT for w in range(TOTALWIDTH)] for h in range(TOTALHEIGHT) ]
+
+#add in grass to the map with about 90% coverage
+for rw in range(TOTALHEIGHT):
+    for cl in range(TOTALWIDTH):
+        tile = DIRT
+        randomNumber = random.randint(0,10)
+        if randomNumber < 9:
+            tile = GRASS
+        tilemap[rw][cl] = tile
 
 #set up the display
 pygame.init()
@@ -32,27 +46,35 @@ DISPLAYSURF = pygame.display.set_mode((MAPWIDTH*TILESIZE + 400, MAPHEIGHT*TILESI
 #add a font for our inventory
 INVFONT = pygame.font.Font('FreeSansBold.ttf', 12)
 
-#loop through each row
-for rw in range(MAPHEIGHT):
-    #loop through each column in that row
-    for cl in range(MAPWIDTH):
-        #pick a random number between 0 and 10
-        randomNumber = random.randint(0,10)
-        #WATER if the random number is a 1 or a 2
-        if randomNumber in [1,2]:
-            tile = WATER
-        #GRASS if the random number is a 1 or a 2
-        elif randomNumber in [3,4]:
-            tile = GRASS
-        #otherwise it's DIRT
-        else:
-            tile = DIRT
-        #set the position in the tilemap to the randomly chosen tile
-        tilemap[rw][cl] = tile
+#choose a number of biomes to draw
+numBiomes = random.randint(8, 14)
+#draw these biomes
+for i in range(0, numBiomes):
+    #pick a random biome
+    biome = random.choice(list(biomes.keys()))
+
+    #pick a random starting point for the biome
+    startPos = [
+        random.randint(0,TOTALWIDTH),
+        random.randint(0,TOTALHEIGHT)
+    ]
+
+    #get a randomised width and height for the biome
+    width = random.randint(biomes[biome]['minSize'], biomes[biome]['maxSize'])
+    height = random.randint(biomes[biome]['minSize'], biomes[biome]['maxSize'])
+
+    #draw the biome in this range
+    for x in range(startPos[0], startPos[0] + width):
+        if x < len(tilemap):
+            for y in range(startPos[1], startPos[1] + height):
+                if y < len(tilemap[x]):
+                    randomNumber = random.randint(0,100)
+                    if randomNumber < biomes[biome]['coverage']:
+                        tilemap[x][y] = biome
 
 while True:
 
-    #fill the background in black	    
+    #fill the background in black
     DISPLAYSURF.fill(BLACK)
 
     #get all the user events
@@ -65,7 +87,7 @@ while True:
         #if a key is pressed
         elif event.type == KEYDOWN:
             #if the right arrow is pressed
-            if event.key == K_RIGHT and playerPos[0] < MAPWIDTH - 1:
+            if event.key == K_RIGHT and playerPos[0] < TOTALWIDTH - 1:
                 #change the player's x position
                 playerPos[0] += 1
             if event.key == K_LEFT and playerPos[0] > 0:
@@ -74,7 +96,7 @@ while True:
             if event.key == K_UP and playerPos[1] > 0:
                 #change the player's x position
                 playerPos[1] -= 1
-            if event.key == K_DOWN and playerPos[1] < MAPHEIGHT -1:
+            if event.key == K_DOWN and playerPos[1] < TOTALHEIGHT - 1:
                 #change the player's x position
                 playerPos[1] += 1
             if event.key == K_SPACE:
@@ -89,7 +111,7 @@ while True:
                     #the player is now standing on dirt
                     tilemap[playerPos[1]][playerPos[0]] = DIRT
 
-            for key in controls:    
+            for key in controls:
 
                 #if this key was pressed
                 if (event.key == controls[key]):
@@ -118,7 +140,7 @@ while True:
                                     inventory[i] -= craft[key][i]
                                 #add the crafted item to the inventory
                                 inventory[key] += 1
-                                
+
                     #PLACE if shift wasn't pressed
                     else:
 
@@ -135,23 +157,33 @@ while True:
                                 inventory[currentTile] += 1
                             #place the item
                             tilemap[playerPos[1]][playerPos[0]] = key
-                    
+
+    #offset the map within the limits of the map spacing
+    if playerPos[0] > (OFFSETLEFT + MAPWIDTH - MAPSPACING) and TOTALWIDTH > (OFFSETLEFT + MAPWIDTH):
+        OFFSETLEFT += 1
+    if playerPos[0] < (OFFSETLEFT + MAPSPACING) and OFFSETLEFT > 0:
+        OFFSETLEFT -= 1
+    if playerPos[1] > (OFFSETTOP + MAPHEIGHT - MAPSPACING) and TOTALHEIGHT > (OFFSETTOP + MAPHEIGHT):
+        OFFSETTOP += 1
+    if playerPos[1] < (OFFSETTOP + MAPSPACING) and OFFSETTOP > 0:
+        OFFSETTOP -= 1
+
     #loop through each row
-    for row in range(MAPHEIGHT):
+    for row in range(OFFSETTOP, OFFSETTOP + MAPHEIGHT):
         #loop through each column in the row
-        for column in range(MAPWIDTH):
+        for column in range(OFFSETLEFT, OFFSETLEFT + MAPWIDTH):
             #draw the resource at that position in the tilemap, using the correct image
-            DISPLAYSURF.blit(textures[tilemap[row][column]], (column*TILESIZE,row*TILESIZE))
-        
-    #display the player at the correct position 
-    DISPLAYSURF.blit(PLAYER,(playerPos[0]*TILESIZE,playerPos[1]*TILESIZE))
+            DISPLAYSURF.blit(textures[tilemap[row][column]], ((column-OFFSETLEFT)*TILESIZE,(row-OFFSETTOP)*TILESIZE))
+
+    #display the player at the correct position
+    DISPLAYSURF.blit(PLAYER,((playerPos[0]-OFFSETLEFT)*TILESIZE,(playerPos[1]-OFFSETTOP)*TILESIZE))
 
     #draw a rectangle behind the instructions
     pygame.draw.rect(DISPLAYSURF, BLACK, (MAPWIDTH*TILESIZE,0,200,MAPHEIGHT*TILESIZE))
 
     #display the inventory, starting 10 pixels in
     xPosition = 10
-    
+
     for item in resources:
         #add the image
         DISPLAYSURF.blit(textures[item],(xPosition,MAPHEIGHT*TILESIZE+20))
@@ -166,7 +198,7 @@ while True:
 
         #move along to place the next inventory item
         xPosition += 50
-   
+
     #add the text showing each line of the instructions
     pos = 10
     for item in instructions:

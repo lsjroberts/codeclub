@@ -8,7 +8,7 @@ import pygame
 #the maximum number of each resource that can be held
 #----------------------------------------------------
 
-MAXTILES  = 20
+MAXTILES  = 255
 
 
 #the title bar text/image
@@ -35,12 +35,31 @@ DIRT    = 0
 GRASS   = 1
 WATER   = 2
 BRICK   = 3
+SAND    = 4
+TREE    = 5
 
 
 #a list of all game resources
 #----------------------------
 
-resources = [DIRT,GRASS,WATER,BRICK]
+resources = [DIRT,GRASS,WATER,BRICK,SAND]
+biomes    = {
+    WATER: {
+        'minSize': 5,
+        'maxSize': 20,
+        'coverage': 80
+    },
+    SAND: {
+        'minSize': 10,
+        'maxSize': 60,
+        'coverage': 80
+    },
+    TREE: {
+        'minSize': 10,
+        'maxSize': 80,
+        'coverage': 30
+    }
+}
 
 
 #a dictionary linking resources to textures
@@ -50,7 +69,9 @@ textures =   {
                 DIRT    : pygame.image.load('dirt.png'),
                 GRASS   : pygame.image.load('grass.png'),
                 WATER   : pygame.image.load('water.png'),
-                BRICK   : pygame.image.load('brick.png')
+                BRICK   : pygame.image.load('brick.png'),
+                SAND    : pygame.image.load('sand.png'),
+                TREE    : pygame.image.load('tree.png')
              }
 
 
@@ -61,7 +82,9 @@ inventory =   {
                 DIRT    : 10,
                 GRASS   : 10,
                 WATER   : 10,
-                BRICK   : 0
+                BRICK   : 0,
+                SAND    : 0,
+                TREE    : 0
             }
 
 
@@ -91,5 +114,5 @@ instructions =  [
                     "   SHIFT + NUMBER KEYS = Craft tile",
                     "",
                     "Crafting Rules:",
-                    "   BRICK = 2xDIRT + 1xWATER"   
+                    "   BRICK = 2xDIRT + 1xWATER"
                 ]
